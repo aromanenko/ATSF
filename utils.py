@@ -131,21 +131,20 @@ def AdaptiveExponentialSmoothing(x, h, Params):
 # step <char> - aggregation method of the original data before forecasting
 # ParamsArray <array> - array of parameter set, each component of array defines particular forecasting algorithm
 def build_forecast(h, ts, alg_name, alg_title, params_array, step='D'):
-  'grid'
-    
-  FRC_TS = dict()
-
-  for p in params_array:
-      frc_horizon = pd.date_range(ts.index[-1], periods=h+1, freq=step)[1:]
-      frc_ts = pd.DataFrame(index = ts.index.append(frc_horizon), columns = ts.columns)
       
-      for cntr in ts.columns:
-          frc_ts[cntr] = eval(alg_name)(ts[cntr], h, p)
-     
-#         frc_ts.columns = frc_ts.columns+('%s %s' % (alg_title, p))
-      FRC_TS['%s %s' % (alg_title, p)] = frc_ts
-  
-  return FRC_TS
+	FRC_TS = dict()
+
+	for p in params_array:
+		frc_horizon = pd.date_range(ts.index[-1], periods=h+1, freq=step)[1:]
+		frc_ts = pd.DataFrame(index = ts.index.append(frc_horizon), columns = ts.columns)
+	  
+		for cntr in ts.columns:
+			frc_ts[cntr] = eval(alg_name)(ts[cntr], h, p)
+
+		#         frc_ts.columns = frc_ts.columns+('%s %s' % (alg_title, p))
+		FRC_TS['%s %s' % (alg_title, p)] = frc_ts
+
+	return FRC_TS
 
 # draw forecast and original time series
 # ts - <pandas data frame> with timestamps in index, each column contains particular timeseries
@@ -153,13 +152,13 @@ def build_forecast(h, ts, alg_name, alg_title, params_array, step='D'):
 # ts_num <int> - column index for which plot shoud be drawn
 # alg_title <str> - a name of the forecasting algorithm
 def plot_ts_forecast(ts, frc_ts, ts_num=0, alg_title=''):
-    frc_ts.columns = ts.columns+'; '+alg_title
-    ts[ts.columns[ts_num]].plot(style='b', linewidth=1.0, marker='o')
-    ax = frc_ts[frc_ts.columns[ts_num]].plot(style='r-^', figsize=(25,5), linewidth=1.0)
-    plt.xlabel("Time ticks")
-    plt.ylabel("TS values")
-    plt.legend()
-    return ax
+	frc_ts.columns = ts.columns+'; '+alg_title
+	ts[ts.columns[ts_num]].plot(style='b', linewidth=1.0, marker='o')
+	ax = frc_ts[frc_ts.columns[ts_num]].plot(style='r-^', figsize=(25,5), linewidth=1.0)
+	plt.xlabel("Time ticks")
+	plt.ylabel("TS values")
+	plt.legend()
+	return ax
 
 # Quality functions
 def qualitySSE(x,y):
