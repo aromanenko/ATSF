@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import math
-
+import scipy as sc
 
 
 # Initialized Exponential Smoothing
@@ -211,3 +211,10 @@ def qualityMedianAE(x,y):
     # x - real values
     # y - forecasts
     return ((x-y).abs()).median(), (x-y).abs()
+	
+def get_autoregrmatrix(x,h,K):
+    T = len(x)
+    X = sc.linalg.hankel(x[:T-h-K+1], 
+                          np.hstack((x[T-h-K:T-h]))) # is needed to repeat x[-K] in second part
+    y = x[K+h-1:]
+    return X,y
