@@ -2,7 +2,7 @@ import os
 import numpy as np
 import math
 import scipy as sc
-
+import matplotlib.pyplot as plt
 
 # Initialized Exponential Smoothing
 # x <array Tx1>- pandas time series, 
@@ -180,7 +180,7 @@ def qualityRMSE(x,y):
     # x,y - pandas structures
     # x - real values
     # y - forecasts
-    return (((x-y)**2).mean())**(0.5) , (x-y)**2
+    return (((x-y)**2).mean())**(0.5) , (x-y).abs()
 
 def qualityMAE(x,y):
     # Mean absolute error
@@ -194,16 +194,74 @@ def qualityMAPE(x,y):
     # x,y - pandas structures
     # x - real values
     # y - forecasts
-    qlt = ((x-y).abs()/x).replace([np.inf, -np.inf], np.nan)
-    return qlt.mean() , (x-y).abs()
+    qlt = ((x-y).abs()/x.abs()).replace([np.inf, -np.inf], np.nan)
+    return qlt.mean() , qlt
 
-def qualityMACAPE(x,y):
-    # Mean average corrected absolute percentage error
+def qualityMAPPE(x,y):
+    # Mean absolute predicted percentage error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    qlt = ((x-y).abs()/y.abs()).replace([np.inf, -np.inf], np.nan)
+    return qlt.mean() , qlt
+
+def qualitySMAPE(x,y):
+    # Symmetric mean absolute percentage error
     # x,y - pandas structures
     # x - real values
     # y - forecasts
     qlt = (2*(x-y).abs()/(x+y)).replace([np.inf, -np.inf], np.nan)
-    return qlt.mean() , (x-y).abs()
+    return qlt.mean() , qlt
+
+def qualityMAMAXPE(x,y):
+    # Mean absolute maximum percentage error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    qlt = ((x-y).abs()/max(x.abs(), y.max())).replace([np.inf, -np.inf], np.nan)
+    return qlt.mean() , qlt
+
+def qualityMASE(x,y, init_step=0):
+    # Mean absolute scaled error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    qlt = ((x-y).abs()/(x-x.shift(1)).abs())[init_step:].replace([np.inf, -np.inf], np.nan)
+    return qlt.mean() , qlt
+
+def qualityMedianAE(x,y):
+    # Median absolute error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    return ((x-y).abs()).median(), (x-y).abs()
+
+def qualityWAPE(x,y):
+    # Weighted absolute percentage error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    denom = x.abs().sum()
+    qlt = ((x-y).abs()/denom).replace([np.inf, -np.inf], np.nan)
+    return qlt.sum() , qlt
+
+def qualityWAPPE(x,y):
+    # Weighted absolute percentage error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    denom = y.abs().sum()
+    qlt = ((x-y).abs()/denom).replace([np.inf, -np.inf], np.nan)
+    return qlt.sum() , qlt
+
+def qualityWAMAXPE(x,y):
+    # Weighted absolute maximum percentage error
+    # x,y - pandas structures
+    # x - real values
+    # y - forecasts
+    denom = pd.merge(x, y, right_index = True, left_index = True).max(axis = 1).sum()
+    qlt = ((x-y).abs()/denom).replace([np.inf, -np.inf], np.nan)
+    return qlt.sum() , qlt
 
 def qualityMedianAE(x,y):
     # Median absolute error
