@@ -65,6 +65,122 @@ def SimpleExponentialSmoothing(x, h=1, Params={}):
             #else do not nothing
         FORECAST[cntr+h] = y
     return FORECAST
+
+def HoltExponentialSmoothing(x, h, Params):
+    T = len(x)
+    alpha = Params['alpha']
+    beta = Params['beta']
+    AdaptationPeriod = Params['AdaptationPeriod']
+    
+    FORECAST = [np.NaN]*(T+h)
+    if alpha>1:
+        w.warn('Alpha can not be more than 1')
+        #alpha = 1
+        return FORECAST
+    if alpha<0:
+        w.warn('Alpha can not be less than 0')
+        #alpha = 0
+        return FORECAST
+    if beta>1:
+        w.warn('beta can not be more than 1')
+        #beta = 1
+        return FORECAST
+    if beta<0:
+        w.warn('beta can not be less than 0')
+        #beta = 0
+        return FORECAST
+    
+    
+    l= np.NaN
+    b= np.NaN
+    
+    for t in range(T):
+        if not math.isnan(x[t]):
+            if math.isnan(l):
+                l = x[t]
+                b = x[t+1]-x[t]
+                t0 = np.NaN
+                
+            l_prev = l    
+                        
+            if (t-t0+1)<AdaptationPeriod:
+                l = (1-(1-alpha)*(t-t0+1)/(AdaptationPeriod))* x[t] + (1-alpha)*(t-t0+1)/(AdaptationPeriod)*(l+b)
+                b = (1-beta)*(t-t0+1)/(AdaptationPeriod)*(l - l_prev) + (1-alpha)*(t-t0+1)/(AdaptationPeriod)*b
+            else:
+                l = alpha* x[t] + (1-alpha)*(l+b)
+                b = beta* (l - l_prev) + (1- beta)*b
+                # b = beta* (x[t] - l_prev) + (1- beta)*b
+
+
+        FORECAST[t+h] = l+ b*h
+    return FORECAST
+	
+def AdditiveWintersExponentialSmoothing(x, h, Params):
+    T = len(x)
+    alpha = Params['alpha']
+    gamma = Params['gamma']
+    p = Params['seasonality_period']
+    
+    FORECAST = [np.NaN]*(T+h)
+    
+    l= np.NaN
+    s= []
+    
+    for cntr in range(T):
+        if not math.isnan(x[cntr]):
+            if math.isnan(l):
+                l= x[cntr]
+            if len(s)==0:
+                # looking in the future
+                for i in range(p):
+                    s.append(x[i])
+            if cntr<p:
+                l = alpha*(x[cntr]-s[cntr])+(1-alpha)*l # recurrent smoothing of level 
+            else:
+                s.append(gamma*(x[cntr]-l)+(1-gamma)*s[cntr-p])
+                l = alpha*(x[cntr]-s[cntr-p])+(1-alpha)*l # recurrent smoothing of level 
+                
+        FORECAST[cntr+h] = l + s[cntr+h-(1+h//p)*p]
+    return FORECAST
+
+
+def TheilWageExponentialSmoothing(x, h, Params):
+    T = len(x)
+    alpha = Params['alpha']
+    beta = Params['beta']
+    gamma = Params['gamma']
+    p = Params['seasonality_period']
+    
+    FORECAST = [np.NaN]*(T+h)
+    
+    l= np.NaN
+    b=np.NaN
+    s= []
+    
+    for cntr in range(T):
+        if not math.isnan(x[cntr]):
+            if math.isnan(l):
+                l= x[cntr]
+            if math.isnan(b):
+                b= 0
+            
+            if len(s)==0:
+                for i in range(p):
+                    s.append(x[i])
+                    
+                    
+            if cntr<p:
+                l_old=l
+                l = alpha*(x[cntr]-s[cntr])+(1-alpha)*(l+b)
+                b=beta*(l-l_old)+(1-beta)*b
+            else:
+                l_old=l
+                s.append(gamma*(x[cntr]-l)+(1-gamma)*s[cntr-p])
+                l = alpha*(x[cntr]-s[cntr-p])+(1-alpha)*(l+b) # recurrent smoothing of level 
+                b=beta*(l-l_old)+(1-beta)*b
+            
+        FORECAST[cntr+h] = l+b + s[cntr+h - (1+h//p)*p]
+    return FORECAST
 	
 # AdaptiveExponentialSmoothing
 # x <array Tx1>- time series, 
