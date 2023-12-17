@@ -294,6 +294,39 @@ def plot_ts_forecast(ts, frc_ts, ts_num=0, alg_title='', title_text = ''):
 #	return ax
 
 
+def draw_arima_forecast(ts, arima_model, start_dt=0, end_dt=-1):
+  predict = arima_model.get_prediction()
+  forecast = pd.DataFrame(predict.predicted_mean).rename(columns = {'predicted_mean':'static_forecast'})
+  forecast_ci = predict.conf_int().rename(columns = {'lower wage_boxcox':'l_ci_st',	'upper wage_boxcox':'u_ci_st'}) # confidence interval
+
+  #  Dynamic predictions
+  predict_dy = arima_model.get_prediction(dynamic=start_dt)
+  forecast_dy = pd.DataFrame(predict_dy.predicted_mean).rename(columns = {'predicted_mean':'dynamic_forecast'})
+  forecast_dy_ci = predict_dy.conf_int().rename(columns = {'lower wage_boxcox':'l_ci_dy',	'upper wage_boxcox':'u_ci_dy'}) # confidence interval
+
+  if start_dt ==0:
+    start_dt= ts.index.min()
+
+  if end_dt == -1:
+    end_dt = ts_wage_boxcox.index.max()
+
+  # Plot data points and predictions
+  fig = ts.loc[start_dt:].merge(
+      forecast[start_dt:end_dt],
+        how = 'left', left_index = True, right_index = True
+        ).merge(
+            forecast_dy[start_dt:],
+            how = 'left', left_index = True, right_index = True
+        ).merge(
+          forecast_ci,
+          how = 'left', left_index = True, right_index = True
+        ).merge(
+          forecast_dy_ci,
+          how = 'left', left_index = True, right_index = True
+        ).plot().update_layout(height=350, width=1300).show()
+
+  return fig
+
 # Quality functions
 def qualitySSE(x,y):
     # Sum squared error
