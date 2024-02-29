@@ -383,7 +383,8 @@ def history_extending(T43 : pd.DataFrame, PRODUCT_ATTR : pd.DataFrame, SEASONAL_
     medians = df.groupby(keys)[['TGT_QTY_R']].median().reset_index()
     calendar = pd.DataFrame()
     today = datetime.datetime.today()
-    calendar['PERIOD_DT'] = (pd.date_range(today.replace(year=today.year - 2), today, freq='M') + datetime.timedelta(days=1))
+    calendar['PERIOD_DT'] = (pd.date_range(IB_HIST_END_DT.replace(year=IB_HIST_END_DT.year - 2), IB_HIST_END_DT, freq='M') + datetime.timedelta(days=1))
+    # calendar['PERIOD_DT'] = (pd.date_range(today.replace(year=today.year - 2), today, freq='M') + datetime.timedelta(days=1))
     calendar['PERIOD_DT'] = pd.to_datetime(calendar['PERIOD_DT']).dt.date
     for key in keys:
         calendar = pd.merge(calendar, medians[[key]], how='cross')
