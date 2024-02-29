@@ -449,7 +449,7 @@ def demand_restoration_algorithm(DR_PARAMETERS : dict, TGT_VAR_CONFIG : dict,
     T3 = add_stock_data_and_promo_flag(T1, STOCK, PROMO)
     T41 = primiry_deficit_flg_def(T3, DR_PARAMETERS)
     T42 = secondary_deficit_flg_def(T41, IB_HIST_START_DT, IB_HIST_END_DT, IB_UPDATE_HISTORY_DEPTH, HIGH_TURNOVER_TRSHD, DR_PARAMETERS)
-    T43 = demand_restoration_on_stock_def(T42, DR_PARAMETERS)
-    df = history_extending(T43, PRODUCT_ATTR, SEASONAL_FLAG_CONFIG, DR_PARAMETERS, IB_HIST_END_DT)
+    df = demand_restoration_on_stock_def(T42, DR_PARAMETERS)
+    # df = history_extending(T43, PRODUCT_ATTR, SEASONAL_FLAG_CONFIG, DR_PARAMETERS, IB_HIST_END_DT)
     df['PERIOD_DT'] = pd.to_datetime(df['PERIOD_DT']).dt.date
     return df
