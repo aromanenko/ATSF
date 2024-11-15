@@ -43,28 +43,52 @@ def InitExponentialSmoothing(x, h, Params):
 # h <scalar> - forecasting delay
 # Params <dict> - dictionary with 
 #    alpha <scalar in [0,1]> - smoothing parameter
-def SimpleExponentialSmoothing(x, h=1, Params={}):
+# Example of realization
+
+# Simple Exponential Smoothing
+# x <array Tx1>- time series,
+# h <scalar> - forecasting delay
+# Params <dict> - dictionary with
+#    alpha <scalar in [0,1]> - smoothing parameter
+
+def SimpleExponentialSmoothing(x, h=1, params={'alpha':0.1}, freq = None):
     T = len(x)
-    alpha = Params['alpha']
-    FORECAST = [np.NaN]*(T+h)
+    alpha = params['alpha']
+
+    # retrieve date frequency in ts 
+    if freq is None:
+      freq = pd.infer_freq(x.index)
+      
+
+    # prepare Forecast pd.Series to put forecasted values in it
+    forecast = pd.Series(index = x.index.append(pd.date_range(x.index[-1], periods=h+1, freq=freq)[1:]), name = 'fcst '+x.name)
+
+    # some checks for alpha parameter
     if alpha>1:
         w.warn('Alpha can not be more than 1')
         #alpha = 1
-        return FORECAST
+        return forecast
     if alpha<0:
         w.warn('Alpha can not be less than 0')
         #alpha = 0
-        return FORECAST
+        return forecast
+    
     # initialization
-    y = x[0]
+    y = x.iloc[0]
+    
+    # forecast all ts step-by-step
     for cntr in range(T):
-        if not math.isnan(x[cntr]):
+        if not math.isnan(x.iloc[cntr]):
             if math.isnan(y):
-                y=x[cntr]
-            y = alpha*x[cntr] + (1-alpha)*y  # = y + alpha*(x[cntr]-y) 
-            #else do not nothing
-        FORECAST[cntr+h] = y
-    return FORECAST
+                y=x.iloc[cntr]
+            y = alpha*x.iloc[cntr] + (1-alpha)*y  # = y + alpha*(x[cntr]-y)
+        #else do not nothing
+        forecast.iloc[cntr+h] = y # academic forecast, for ML training
+        # forecast_production = forecast
+        # forecast_production.iloc[T:] = forecast_production.iloc[T+h] # production forecast
+
+    return forecast #, forecst.iloc[T+h]
+
 
 def HoltExponentialSmoothing(x, h, Params):
     T = len(x)
